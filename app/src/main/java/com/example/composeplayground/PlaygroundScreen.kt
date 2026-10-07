@@ -1,5 +1,6 @@
 package com.example.composeplayground
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +13,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,6 +40,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.composeplayground.ui.theme.AppTheme
+import com.example.composeplayground.model.Chat
+import com.example.composeplayground.data.mockChats
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * Raw starter playground screen.
@@ -42,107 +51,98 @@ import com.example.composeplayground.ui.theme.AppTheme
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlaygroundScreen(modifier: Modifier = Modifier) {
-    var count by remember { mutableIntStateOf(0) }
+fun conversationPage(modifier: Modifier = Modifier) {
+    var chats by remember {
+    mutableStateOf(mockChats)
+    }
+    var addChat by remember {
+        mutableStateOf(false)
+    }
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = { Text("Compose Playground") },
+                title = { Text("hamfa  chat test") },
+                    actions = {
+                        IconButton(onClick ={ Toast.makeText(context,"search was clicked",Toast.LENGTH_SHORT).show()} ){
+                            Icon(
+                                imageVector=Icons.Default.Search,
+                                "search Users"
+                                )
+                        }
+                    },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                
                 ),
-                actions = {
-                    IconButton(onClick = { count = 0 }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Reset"
-                        )
-                    }
-                }
+
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { count++ },
+                onClick = { addChat=!addChat},
                 containerColor = MaterialTheme.colorScheme.primary
+                
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Increment"
+                    contentDescription = "add chat"
+                    
                 )
             }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Hello Jetpack Compose! \uD83D\uDE80",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "This is a starter template with full Material 3 theme support. Edit PlaygroundScreen.kt to start experimenting.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        chatList(chats,
+        modifier = Modifier.padding(innerPadding)
+)
+
+        if (addChat) {
+            var name by remember { mutableStateOf("") }
+            var message by remember { mutableStateOf("") }
+
+            AlertDialog(
+                onDismissRequest = { addChat = false },
+                title = { Text("Add chat") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = { Text("Name") },
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = message,
+                            onValueChange = { message = it },
+                            label = { Text("Message") }
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = name.isNotBlank() && message.isNotBlank(),
+                        onClick = {
+                            chats = chats + Chat(
+                                id = (chats.maxOfOrNull { it.id } ?: 0) + 1,
+                                name = name.trim(),
+                                lastMessage = message.trim(),
+                                time = "Now"
+                            )
+                            addChat = false
+                        }
+                    ) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { addChat = false }) {
+                        Text("Cancel")
+                    }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Count: $count",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row {
-                Button(onClick = { count++ }) {
-                    Text("+1")
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                OutlinedButton(onClick = { if (count > 0) count-- }) {
-                    Text("-1")
-                }
-            }
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Light Theme")
-@Composable
-fun PlaygroundScreenPreviewLight() {
-    AppTheme(darkTheme = false) {
-        PlaygroundScreen()
-    }
-}
-
-@Preview(showBackground = true, name = "Dark Theme")
-@Composable
-fun PlaygroundScreenPreviewDark() {
-    AppTheme(darkTheme = true) {
-        PlaygroundScreen()
     }
 }
