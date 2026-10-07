@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
@@ -51,7 +53,11 @@ import androidx.compose.ui.platform.LocalContext
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun conversationPage(modifier: Modifier = Modifier) {
+fun conversationPage(
+    modifier: Modifier = Modifier,
+    darkTheme: Boolean,
+    onToggleTheme: () -> Unit
+) {
     var chats by remember {
     mutableStateOf(mockChats)
     }
@@ -66,6 +72,12 @@ fun conversationPage(modifier: Modifier = Modifier) {
             TopAppBar(
                 title = { Text("hamfa  chat test") },
                     actions = {
+                        IconButton(onClick = onToggleTheme) {
+                            Icon(
+                                imageVector = if (darkTheme) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                contentDescription = if (darkTheme) "Switch to light theme" else "Switch to dark theme"
+                            )
+                        }
                         IconButton(onClick ={ Toast.makeText(context,"search was clicked",Toast.LENGTH_SHORT).show()} ){
                             Icon(
                                 imageVector=Icons.Default.Search,
